@@ -60,8 +60,9 @@ public class PingBongBall : MonoBehaviour
     {
         Vector3 normal = normalVector.normalized;
         Vector3 currentVelocity = (lastVelocity + gravity * timeSinceLast);
-        Vector3 newVelocity = currentVelocity - 2f * Vector3.Dot(currentVelocity, normal) * normal * power;
+        Vector3 newVelocity = currentVelocity - 2f * Vector3.Dot(currentVelocity, normal) * normal;
         newVelocity = ((bounceCoef * 1000 * (newVelocity)) + (1 * newVelocity)) / (1 + 1000);
+        newVelocity *= power;
         if (PhotonNetwork.IsMasterClient)
         {
             photonView.RPC("AddForce", RpcTarget.All, transform.position, newVelocity, lastPlayerID);
@@ -72,8 +73,10 @@ public class PingBongBall : MonoBehaviour
     public void Respawn(int losePlayer)
     {
         float radius = 10 / Mathf.Tan(Mathf.PI / PhotonNetwork.CurrentRoom.PlayerCount);
-        Quaternion rotation = PingBongGameManager.CalculateCircleRotation(losePlayer);
-        Vector3 position = PingBongGameManager.CalculateCirclePosition(radius - 3, losePlayer);
+        Quaternion rotation = PingBongGameManager.CalculateCircleRotation(losePlayer-1);
+        Vector3 position = PingBongGameManager.CalculateCirclePosition(radius - 3, losePlayer-1);
+        position += Vector3.up;
         photonView.RPC("AddForce", RpcTarget.All, position, rotation * startForce, losePlayer);
+        Debug.Log(position);
     }
 }

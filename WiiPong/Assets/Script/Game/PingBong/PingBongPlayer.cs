@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class PingBongPlayer : MonoBehaviour
 {
+    [SerializeField] private float power = 1;
     [SerializeField] private float speed = 10;
     [SerializeField] private float rotationSpeed = 10;
 
@@ -58,7 +59,7 @@ public class PingBongPlayer : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Ball"))
         {
-            other.GetComponent<PingBongBall>().Hit(transform.forward.normalized, 1, playerID);
+            other.GetComponent<PingBongBall>().Hit(transform.forward.normalized, power, playerID);
         }
     }
 }

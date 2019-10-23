@@ -95,6 +95,10 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
 
             int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
             float radius = 10 / Mathf.Tan(Mathf.PI / totalPlayer);
+            if (totalPlayer <= 2)
+            {
+                radius = 10;
+            }
             Debug.Log(radius);
             Vector3 position = CalculateCirclePosition(radius-2, PhotonNetwork.LocalPlayer.GetPlayerNumber());
             Quaternion rotation = CalculateCircleRotation(PhotonNetwork.LocalPlayer.GetPlayerNumber());
@@ -170,11 +174,6 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            PhotonNetwork.LeaveRoom();
-        }
-
         if (isTimerRunning)
         {
             float timer = (float)PhotonNetwork.Time - startTime;
@@ -210,11 +209,6 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
     
     public void AddScore(int playerID)
     {
-        if (!PhotonNetwork.IsMasterClient || playerID == -1)
-        {
-            return;
-        }
-
         photonView.RPC("UpdateScore", RpcTarget.All, playerID);
     }
 

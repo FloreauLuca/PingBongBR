@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
 public class PingBongWall : MonoBehaviour
@@ -19,7 +20,12 @@ public class PingBongWall : MonoBehaviour
             int ballPlayerID = other.GetComponent<PingBongBall>().LastPlayerId;
             if (wallPlayerID != -1)
             {
-                if (wallPlayerID != ballPlayerID)
+                if (PhotonNetwork.LocalPlayer.ActorNumber != wallPlayerID)
+                {
+                    return;
+                }
+
+                if (wallPlayerID != ballPlayerID && wallPlayerID == PhotonNetwork.LocalPlayer.ActorNumber)
                 {
                     PingBongGameManager.Instance.AddScore(ballPlayerID);
                     other.GetComponent<PingBongBall>().Respawn(wallPlayerID);
@@ -37,3 +43,4 @@ public class PingBongWall : MonoBehaviour
         }
     }
 }
+
