@@ -108,7 +108,7 @@ public class LobbyScript : MonoBehaviourPunCallbacks
         Debug.Log("OnJoinRandomFailed : " + message);
         string roomName = "Room " + Random.Range(1000, 10000); //MyToDo name create random room
 
-        RoomOptions options = new RoomOptions { MaxPlayers = 8 }; //MYTODO maxplayer create random room
+        RoomOptions options = new RoomOptions { MaxPlayers = 8}; //MYTODO maxplayer create random room
 
         PhotonNetwork.CreateRoom(roomName, options, null);
     }
@@ -235,7 +235,7 @@ public class LobbyScript : MonoBehaviourPunCallbacks
         }
         roomName = (roomName.Equals(string.Empty)) ? "Room " + Random.Range(1000, 10000) : roomName;
 
-        RoomOptions options = new RoomOptions { MaxPlayers = (byte)maxPlayers };
+        RoomOptions options = new RoomOptions { MaxPlayers = (byte)maxPlayers};
 
         PhotonNetwork.CreateRoom(roomName, options, null);
     }
@@ -279,16 +279,17 @@ public class LobbyScript : MonoBehaviourPunCallbacks
 
     public void OnStartGameButtonClicked()
     {
-        PhotonNetwork.CurrentRoom.IsOpen = false;
-        PhotonNetwork.CurrentRoom.IsVisible = false;
+        //PhotonNetwork.CurrentRoom.IsOpen = false;
+        //PhotonNetwork.CurrentRoom.IsVisible = false;
+        PhotonNetwork.LoadLevel(levelName);
+        /*
         if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
         {
             PhotonNetwork.LoadLevel("PingBongScene");
         }
         else
         {
-            PhotonNetwork.LoadLevel(levelName);
-        }
+        }*/
     }
 
 

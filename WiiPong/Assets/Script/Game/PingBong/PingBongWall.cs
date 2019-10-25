@@ -6,11 +6,18 @@ using UnityEngine;
 
 public class PingBongWall : MonoBehaviour
 {
-    [SerializeField] private int wallPlayerID;
+    private int wallPlayerID;
     public int WallPlayerId
     {
         get => wallPlayerID;
         set => wallPlayerID = value;
+    }
+
+    private int wallPosition;
+    public int WallPosition
+    {
+        get => wallPosition;
+        set => wallPosition = value;
     }
 
     private void OnTriggerEnter(Collider other)

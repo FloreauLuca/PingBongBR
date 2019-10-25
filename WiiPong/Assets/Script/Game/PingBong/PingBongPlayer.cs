@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Pun.UtilityScripts;
+using Photon.Realtime;
 using UnityEngine;
 
 public class PingBongPlayer : MonoBehaviour
@@ -23,16 +24,12 @@ public class PingBongPlayer : MonoBehaviour
     void Start()
     {
         photonView = GetComponent<PhotonView>();
+        playerID = photonView.Owner.ActorNumber;
         foreach (Renderer r in GetComponentsInChildren<Renderer>())
         {
-            r.material.color = GlobalGameManager.GetColor(photonView.Owner.GetPlayerNumber());
+            r.material.color = GlobalGameManager.GetColor(photonView.Owner.ActorNumber-1);
         }
-
-        playerID = photonView.Owner.ActorNumber;
-        foreach (Racket racket in GetComponentsInChildren<Racket>())
-        {
-            racket.PlayerId = PlayerId;
-        }
+        
         startOrientation = transform.right;
         startPosition = transform.position;
     }
@@ -61,5 +58,13 @@ public class PingBongPlayer : MonoBehaviour
         {
             other.GetComponent<PingBongBall>().Hit(transform.forward.normalized, power, playerID);
         }
+    }
+
+    public void ReplacePlayer(Vector3 position, Quaternion rotation)
+    {
+        transform.position = position;
+        transform.rotation = rotation;
+        startOrientation = transform.right;
+        startPosition = transform.position;
     }
 }

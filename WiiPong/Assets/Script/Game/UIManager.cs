@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour
 
     private Dictionary<int, TextMeshProUGUI> playerUIs;
 
-    public void Awake()
+    public void Start()
     {
         playerUIs = new Dictionary<int, TextMeshProUGUI>();
 
@@ -23,7 +23,7 @@ public class UIManager : MonoBehaviour
             entry.transform.SetParent(gameObject.transform);
             entry.transform.localScale = Vector3.one;
             TextMeshProUGUI entryText = entry.GetComponent<TextMeshProUGUI>();
-            entryText.color = GlobalGameManager.GetColor(player.GetPlayerNumber());
+            entryText.color = GlobalGameManager.GetColor(player.ActorNumber - 1);
             entryText.text = "Player " + player.ActorNumber + " : 0";
             playerUIs.Add(player.ActorNumber, entryText);
 
@@ -32,9 +32,26 @@ public class UIManager : MonoBehaviour
 
     public void UpdateScore()
     {
-        foreach (KeyValuePair<int, int> score in PingBongGameManager.Instance.Score)
+        foreach (Player player in PhotonNetwork.PlayerList)
         {
-            playerUIs[score.Key].text = "Player " + score.Key + " : " + score.Value;
+            playerUIs[player.ActorNumber].text = player.NickName + " : " + player.GetScore();
         }
+    }
+
+    public void NewPlayer(Player newPlayer)
+    {
+        GameObject entry = Instantiate(scoreTëxtPrefab);
+        entry.transform.SetParent(gameObject.transform);
+        entry.transform.localScale = Vector3.one;
+        TextMeshProUGUI entryText = entry.GetComponent<TextMeshProUGUI>();
+        entryText.color = GlobalGameManager.GetColor(newPlayer.ActorNumber - 1);
+        entryText.text = "Player " + newPlayer.ActorNumber + " : 0";
+        playerUIs.Add(newPlayer.ActorNumber, entryText);
+    }
+
+    public void LeftPlayer(Player oldPlayer)
+    {
+        Destroy(playerUIs[oldPlayer.ActorNumber]);
+        playerUIs.Remove(oldPlayer.ActorNumber);
     }
 }
