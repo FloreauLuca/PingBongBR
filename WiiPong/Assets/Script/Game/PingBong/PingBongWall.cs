@@ -32,10 +32,12 @@ public class PingBongWall : MonoBehaviour
                     return;
                 }
 
-                if (wallPlayerID != ballPlayerID && wallPlayerID == PhotonNetwork.LocalPlayer.ActorNumber)
+                if (wallPlayerID != ballPlayerID)
                 {
-                    PingBongGameManager.Instance.AddScore(ballPlayerID);
-                    other.GetComponent<PingBongBall>().Respawn(wallPlayerID);
+                    if (wallPlayerID == PhotonNetwork.LocalPlayer.ActorNumber)
+                    {
+                        PingBongGameManager.Instance.AddScore(ballPlayerID, wallPlayerID);
+                    }
                 }
                 else
                 {

@@ -24,13 +24,13 @@ public class UIManager : MonoBehaviour
             entry.transform.localScale = Vector3.one;
             TextMeshProUGUI entryText = entry.GetComponent<TextMeshProUGUI>();
             entryText.color = GlobalGameManager.GetColor(player.ActorNumber - 1);
-            entryText.text = "Player " + player.ActorNumber + " : 0";
+            entryText.text = "Player " + player.NickName + " : 0";
             playerUIs.Add(player.ActorNumber, entryText);
 
         }
     }
 
-    public void UpdateScore()
+    public void Update()
     {
         foreach (Player player in PhotonNetwork.PlayerList)
         {

@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Photon.Pun;
+﻿using Photon.Pun;
 using Photon.Pun.UtilityScripts;
 using Photon.Realtime;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -28,6 +27,8 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
     private List<PingBongWall> myWall;
     private PingBongBall ball = null;
 
+    private List<Player> leftPlayers;
+    private List<Player> newPlayers;
 
     public void Awake()
     {
@@ -37,6 +38,8 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
     public void Start()
     {
         photonView = GetComponent<PhotonView>();
+        leftPlayers = new List<Player>();
+        newPlayers = new List<Player>();
         infoText.text = "Waiting for other players...";
 
         Hashtable props = new Hashtable
@@ -81,16 +84,11 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        NewPlayer(newPlayer);
+        newPlayers.Add(newPlayer);
     }
 
     private void NewPlayer(Player newPlayer)
     {
-        if (PhotonNetwork.IsMasterClient && ball != null)
-        {
-            Destroy(ball.gameObject);
-        }
-
         if (gameStarted)
         {
             if (PhotonNetwork.LocalPlayer != newPlayer)
@@ -105,18 +103,18 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
         }
     }
 
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        RespawnBall(0);
+    }
+
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        LeftPlayer(otherPlayer);
+        leftPlayers.Add(otherPlayer);
     }
 
     private void LeftPlayer(Player otherPlayer)
     {
-        if (PhotonNetwork.IsMasterClient && ball != null)
-        {
-            Destroy(ball.gameObject);
-        }
-
         if (gameStarted)
         {
             List<PingBongWall> removeWall = new List<PingBongWall>();
@@ -149,24 +147,32 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
             radius = 12.5f;
         }
 
-        Vector3 position = CalculateCirclePosition(radius - 2, PhotonNetwork.LocalPlayer.GetPlayerNumber());
-        Quaternion rotation = CalculateCircleRotation(PhotonNetwork.LocalPlayer.GetPlayerNumber());
-        myPlayer.ReplacePlayer(position, rotation);
-
-        foreach (PingBongWall wall in myWall)
+        for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
         {
-            position = CalculateCirclePosition(radius, wall.WallPosition);
-            rotation = CalculateCircleRotation(wall.WallPosition);
-            wall.transform.position = position;
-            wall.transform.rotation = rotation;
+
+            Vector3 position = CalculateCirclePosition(radius, i);
+            Quaternion rotation = CalculateCircleRotation(i);
+            myWall[i].WallPosition = i;
+            myWall[i].WallPlayerId = PhotonNetwork.PlayerList[i].ActorNumber;
+            myWall[i].transform.position = position;
+            myWall[i].transform.rotation = rotation;
+
+            if (PhotonNetwork.LocalPlayer == PhotonNetwork.PlayerList[i])
+            {
+                position = CalculateCirclePosition(radius - 2, i);
+                rotation = CalculateCircleRotation(i);
+                myPlayer.ReplacePlayer(position, rotation);
+
+                position = CalculateCirclePosition(radius, i);
+                rotation = CalculateCircleRotation(i);
+                camera.transform.rotation = rotation;
+                camera.transform.Rotate(Vector3.right, 45);
+                position += Vector3.up * 10;
+                camera.transform.position = position;
+            }
+
         }
 
-        position = CalculateCirclePosition(radius, PhotonNetwork.LocalPlayer.GetPlayerNumber());
-        rotation = CalculateCircleRotation(PhotonNetwork.LocalPlayer.GetPlayerNumber());
-        camera.transform.rotation = rotation;
-        camera.transform.Rotate(Vector3.right, 45);
-        position += Vector3.up * 10;
-        camera.transform.position = position;
     }
 
     private void StartGame()
@@ -294,14 +300,43 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
         }
     }
 
-    public void AddScore(int playerID)
+    public void AddScore(int playerID, int losePlayerID)
     {
         foreach (Player player in PhotonNetwork.PlayerList)
         {
             if (player.ActorNumber == playerID)
             {
                 player.AddScore(1);
-                uiManager.UpdateScore();
+            }
+        }
+        photonView.RPC("RespawnBall", RpcTarget.All, losePlayerID);
+    }
+
+    [PunRPC]
+    public void RespawnBall(int losePlayerID)
+    {
+        foreach (Player player in newPlayers)
+        {
+            NewPlayer(player);
+        }
+
+        foreach (Player player in leftPlayers)
+        {
+            LeftPlayer(player);
+        }
+
+        newPlayers = new List<Player>();
+        leftPlayers = new List<Player>();
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            if (ball == null)
+            {
+                ball = PhotonNetwork.Instantiate("PingBongBall", Vector3.up, Quaternion.identity, 0).GetComponent<PingBongBall>();
+            }
+            else
+            {
+                ball.Respawn(losePlayerID);
             }
         }
     }

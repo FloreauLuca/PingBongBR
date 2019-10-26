@@ -125,12 +125,10 @@ namespace Photon.Pun.UtilityScripts
         /// </summary>
        public void RefreshData()
         {
-            Debug.LogError("Refresh1");
             if (PhotonNetwork.CurrentRoom == null)
             {
                 return;
             }
-            Debug.LogError("Refresh2");
 
             if (PhotonNetwork.LocalPlayer.GetPlayerNumber() >= 0)
             {
@@ -141,8 +139,6 @@ namespace Photon.Pun.UtilityScripts
                 }
                 return;
             }
-            Debug.LogError("Refresh3");
-
 
             HashSet<int> usedInts = new HashSet<int>();
             Player[] sorted = PhotonNetwork.PlayerList.OrderBy((p) => p.ActorNumber).ToArray();
@@ -163,8 +159,6 @@ namespace Photon.Pun.UtilityScripts
                 if (player.IsLocal)
                 {
 					Debug.Log ("PhotonNetwork.CurrentRoom.PlayerCount = " + PhotonNetwork.CurrentRoom.PlayerCount);
-
-                    Debug.LogError("Refresh3");
                     // select a number
                     for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
                     {

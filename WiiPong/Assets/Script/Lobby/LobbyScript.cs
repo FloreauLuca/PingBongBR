@@ -279,8 +279,8 @@ public class LobbyScript : MonoBehaviourPunCallbacks
 
     public void OnStartGameButtonClicked()
     {
-        //PhotonNetwork.CurrentRoom.IsOpen = false;
-        //PhotonNetwork.CurrentRoom.IsVisible = false;
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
         PhotonNetwork.LoadLevel(levelName);
         /*
         if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
@@ -291,13 +291,6 @@ public class LobbyScript : MonoBehaviourPunCallbacks
         {
         }*/
     }
-
-
-
-
-
-
-
 
     private void UpdateCachedRoomList(List<RoomInfo> roomList)
     {
@@ -391,12 +384,4 @@ public class LobbyScript : MonoBehaviourPunCallbacks
     {
         startGameButton.gameObject.SetActive(CheckPlayersReady());
     }
-
-
-
-
-
-
-
-
 }
