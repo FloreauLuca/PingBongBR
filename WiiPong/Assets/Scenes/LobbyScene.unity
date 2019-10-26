@@ -2635,7 +2635,7 @@ MonoBehaviour:
   startGameButton: {fileID: 1792993060}
   playerListEntryPrefab: {fileID: 7028876032312794483, guid: 3c8ff45de3277d8409092de44d80bbc3,
     type: 3}
-  levelName: PingBongBRScene
+  levelName: PongScene2
 --- !u!114 &664708166
 MonoBehaviour:
   m_ObjectHideFlags: 0

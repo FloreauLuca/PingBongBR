@@ -281,15 +281,14 @@ public class LobbyScript : MonoBehaviourPunCallbacks
     {
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.IsVisible = false;
-        PhotonNetwork.LoadLevel(levelName);
-        /*
         if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
         {
-            PhotonNetwork.LoadLevel("PingBongScene");
+            PhotonNetwork.LoadLevel("PongScene2");
         }
         else
         {
-        }*/
+            PhotonNetwork.LoadLevel("PongSceneBR");
+        }
     }
 
     private void UpdateCachedRoomList(List<RoomInfo> roomList)

@@ -84,7 +84,7 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        newPlayers.Add(newPlayer);
+        //newPlayers.Add(newPlayer);
     }
 
     private void NewPlayer(Player newPlayer)
@@ -110,7 +110,7 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        leftPlayers.Add(otherPlayer);
+        //leftPlayers.Add(otherPlayer);
     }
 
     private void LeftPlayer(Player otherPlayer)
@@ -147,24 +147,36 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
             radius = 12.5f;
         }
 
-        for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
+        int totalWall = totalPlayer > 2 ? totalPlayer : 4;
+        for (int i = 0; i < totalWall; i++)
         {
-
-            Vector3 position = CalculateCirclePosition(radius, i);
-            Quaternion rotation = CalculateCircleRotation(i);
+            if (myWall.Count <= i)
+            {
+                PingBongWall wall = Instantiate(wallPrefab).GetComponent<PingBongWall>();
+                myWall.Add(wall);
+            }
+            Vector3 position = CalculateCirclePosition(radius, i, totalWall);
+            Quaternion rotation = CalculateCircleRotation(i, totalWall);
             myWall[i].WallPosition = i;
-            myWall[i].WallPlayerId = PhotonNetwork.PlayerList[i].ActorNumber;
+            if (i < PhotonNetwork.CurrentRoom.PlayerCount)
+            {
+                myWall[i].WallPlayerId = PhotonNetwork.PlayerList[i].ActorNumber;
+            }
+            else
+            {
+                myWall[i].WallPlayerId = -1;
+            }
             myWall[i].transform.position = position;
             myWall[i].transform.rotation = rotation;
 
             if (PhotonNetwork.LocalPlayer == PhotonNetwork.PlayerList[i])
             {
-                position = CalculateCirclePosition(radius - 2, i);
-                rotation = CalculateCircleRotation(i);
+                position = CalculateCirclePosition(radius - 2, i, totalWall);
+                rotation = CalculateCircleRotation(i, totalWall);
                 myPlayer.ReplacePlayer(position, rotation);
 
-                position = CalculateCirclePosition(radius, i);
-                rotation = CalculateCircleRotation(i);
+                position = CalculateCirclePosition(radius, i, totalWall);
+                rotation = CalculateCircleRotation(i, totalWall);
                 camera.transform.rotation = rotation;
                 camera.transform.Rotate(Vector3.right, 45);
                 position += Vector3.up * 10;
@@ -184,35 +196,51 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
             radius = 12.5f;
         }
 
-        Debug.LogError(PhotonNetwork.LocalPlayer.GetPlayerNumber() + " " + (PhotonNetwork.LocalPlayer == null).ToString() + " " + (!PhotonNetwork.IsConnectedAndReady).ToString() + " " + (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey(PlayerNumbering.RoomPlayerIndexedProp)).ToString());
-        Vector3 position = CalculateCirclePosition(radius - 2, PhotonNetwork.LocalPlayer.GetPlayerNumber());
-        Quaternion rotation = CalculateCircleRotation(PhotonNetwork.LocalPlayer.GetPlayerNumber());
-        myPlayer = PhotonNetwork.Instantiate("PingBongPlayer", position, rotation, 0).GetComponent<PingBongPlayer>();
-
-        position = CalculateCirclePosition(radius, PhotonNetwork.LocalPlayer.GetPlayerNumber());
-        rotation = CalculateCircleRotation(PhotonNetwork.LocalPlayer.GetPlayerNumber());
-        camera.transform.rotation = rotation;
-        camera.transform.Rotate(Vector3.right, 45);
-        position += Vector3.up * 10;
-        camera.transform.position = position;
-
-        myWall = new List<PingBongWall>();
-        foreach (Player player in PhotonNetwork.PlayerList)
+        int totalWall = totalPlayer > 2 ? totalPlayer : 4;
+        for(int i = 0; i < totalWall; i++)
         {
-            position = CalculateCirclePosition(radius, player.GetPlayerNumber());
-            rotation = CalculateCircleRotation(player.GetPlayerNumber());
+
+            myWall = new List<PingBongWall>();
+            Vector3 position = CalculateCirclePosition(radius, i, totalWall);
+            Quaternion rotation = CalculateCircleRotation(i, totalWall);
             PingBongWall wall = Instantiate(wallPrefab, position, rotation).GetComponent<PingBongWall>();
-            wall.WallPosition = player.GetPlayerNumber();
-            wall.WallPlayerId = player.ActorNumber;
+            wall.WallPosition = i;
+            if (i < PhotonNetwork.CurrentRoom.PlayerCount)
+            {
+                wall.WallPlayerId = PhotonNetwork.PlayerList[i].ActorNumber;
+            }
+            else
+            {
+                wall.WallPlayerId = -1;
+            }
+
             myWall.Add(wall);
+            if (i < PhotonNetwork.CurrentRoom.PlayerCount)
+            {
+                if (PhotonNetwork.LocalPlayer == PhotonNetwork.PlayerList[i])
+                {
+                    Debug.LogError("Player Order : " + i);
+                    position = CalculateCirclePosition(radius - 2, i, totalWall);
+                    rotation = CalculateCircleRotation(i, totalWall);
+                    myPlayer = PhotonNetwork.Instantiate("PingBongPlayer", position, rotation, 0).GetComponent<PingBongPlayer>();
+
+                    position = CalculateCirclePosition(radius, i, totalWall);
+                    rotation = CalculateCircleRotation(i, totalWall);
+                    camera.transform.rotation = rotation;
+                    camera.transform.Rotate(Vector3.right, 45);
+                    position += Vector3.up * 10;
+                    camera.transform.position = position;
+                }
+            }
+
         }
 
         gameStarted = true;
     }
 
-    public static Vector3 CalculateCirclePosition(float radius, int selectSegment)
+    public static Vector3 CalculateCirclePosition(float radius, int selectSegment, int maxSegment)
     {
-        int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
+        int totalPlayer = maxSegment;
         float angularStart = (360.0f / totalPlayer) * selectSegment;
         float x = radius * Mathf.Sin(angularStart * Mathf.Deg2Rad);
         float z = radius * Mathf.Cos(angularStart * Mathf.Deg2Rad);
@@ -220,9 +248,9 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
         return position;
     }
 
-    public static Quaternion CalculateCircleRotation(int selectSegment)
+    public static Quaternion CalculateCircleRotation(int selectSegment, int maxSegment)
     {
-        int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
+        int totalPlayer = maxSegment;
         float angularStart = (360.0f / totalPlayer) * selectSegment;
         Quaternion rotation = Quaternion.Euler(0.0f, angularStart + 180, 0.0f);
         return rotation;

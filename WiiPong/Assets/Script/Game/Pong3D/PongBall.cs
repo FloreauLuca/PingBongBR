@@ -5,7 +5,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 
-public class PingBongBall : MonoBehaviour
+public class PongBall : MonoBehaviour
 {
     private Vector3 lastPosition;
     private Vector3 lastVelocity;
@@ -15,6 +15,7 @@ public class PingBongBall : MonoBehaviour
     [SerializeField] private float bounceCoef = 1f;
 
     [SerializeField] private Vector3 startForce;
+    [SerializeField] private float maxSpeed;
 
     private PhotonView photonView;
 
@@ -28,6 +29,7 @@ public class PingBongBall : MonoBehaviour
         lastPosition = transform.position;
         lastVelocity = startForce;
         timeSinceLast = 0;
+        GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(lastPlayerID);
     }
 
     private void Update()
@@ -42,6 +44,10 @@ public class PingBongBall : MonoBehaviour
         {
             Bounce(Vector3.up, bounceCoef);
         }
+        if (Vector3.Distance(transform.position, Vector3.zero) > 1000)
+        {
+            Respawn(0);
+        }
     }
 
     public void Hit(Vector3 newForce, float power, int playerID)
@@ -52,6 +58,10 @@ public class PingBongBall : MonoBehaviour
         Vector3 newVelocity = currentVelocity - 2f * Vector3.Dot(currentVelocity, normal) * normal;
         newVelocity = ((bounceCoef * 1000 * (newVelocity)) + (1 * newVelocity)) / (1 + 1000);
         newVelocity *= power;
+        if (newVelocity.magnitude > maxSpeed)
+        {
+            newVelocity = newVelocity.normalized * maxSpeed;
+        }
         AddForce(transform.position, newVelocity, lastPlayerID, true);
         if (PhotonNetwork.LocalPlayer.ActorNumber == playerID)
         {
@@ -64,16 +74,17 @@ public class PingBongBall : MonoBehaviour
     public void AddForce(Vector3 currentPosition, Vector3 newForce, int playerID, bool spawn)
     {
         lastPlayerID = playerID;
-        GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(lastPlayerID - 1);
+        GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(lastPlayerID);
         lastVelocity = newForce;
-        lastPosition = currentPosition;
+        lastPosition = new Vector3(currentPosition.x, 0.6f, currentPosition.z);
         if (spawn)
         {
             timeSinceLast = 0;
         }
         else
         {
-            timeSinceLast = PhotonNetwork.GetPing()/1000f;
+            timeSinceLast = PhotonNetwork.GetPing()/1000f * 2;
+            Debug.Log(timeSinceLast);
         }
     }
 
@@ -85,19 +96,23 @@ public class PingBongBall : MonoBehaviour
         newVelocity = ((bounceCoef * 1000 * (newVelocity)) + (1 * newVelocity)) / (1 + 1000);
         newVelocity *= power;
         AddForce(transform.position, newVelocity, lastPlayerID, true);
-        if (PhotonNetwork.IsMasterClient)
-        {
-            photonView.RPC("AddForce", RpcTarget.Others, transform.position, newVelocity, lastPlayerID, false);
-        }
     }
 
 
     public void Respawn(int losePlayer)
     {
-        float radius = 10 / Mathf.Tan(Mathf.PI / PhotonNetwork.CurrentRoom.PlayerCount);
-        Quaternion rotation = PingBongGameManager.CalculateCircleRotation(losePlayer-1, PhotonNetwork.CurrentRoom.PlayerCount);
-        Vector3 position = PingBongGameManager.CalculateCirclePosition(radius - 3, losePlayer-1, PhotonNetwork.CurrentRoom.PlayerCount);
-        position += Vector3.up;
-        photonView.RPC("AddForce", RpcTarget.All, position, rotation * startForce, losePlayer, true);
+
+        for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
+        {
+            if (PhotonNetwork.PlayerList[i].ActorNumber == losePlayer)
+            {
+                float radius = 15f / Mathf.Tan(Mathf.PI / PhotonNetwork.CurrentRoom.PlayerCount);
+                Quaternion rotation = PongGameManager.CalculateCircleRotation(i, PhotonNetwork.CurrentRoom.PlayerCount);
+                Vector3 position = PongGameManager.CalculateCirclePosition(radius - 3, i, PhotonNetwork.CurrentRoom.PlayerCount);
+                position += Vector3.up;
+                photonView.RPC("AddForce", RpcTarget.All, position, rotation * startForce, losePlayer, true);
+                break;
+            }
+        }
     }
 }

@@ -62,7 +62,7 @@ public class PlayerListEntry : MonoBehaviour
         {
             if (player.ActorNumber == ownerId)
             {
-                playerColorImage.color = GlobalGameManager.GetColor(player.GetPlayerNumber());
+                playerColorImage.color = GlobalGameManager.GetColor(player.ActorNumber);
             }
         }
     }

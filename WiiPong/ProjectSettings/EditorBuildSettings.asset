@@ -20,4 +20,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/PingBongBRScene.unity
     guid: 4283042741dd14a4391fae5d8d1a9163
+  - enabled: 1
+    path: Assets/Scenes/PongScene2.unity
+    guid: 65d7e64e069ec3045b01a417ce2f853a
+  - enabled: 1
+    path: Assets/Scenes/PongSceneBR.unity
+    guid: 7f7b36825596feb45aa44265782ccaaa
   m_configObjects: {}
