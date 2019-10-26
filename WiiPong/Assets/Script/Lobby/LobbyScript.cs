@@ -218,23 +218,21 @@ public class LobbyScript : MonoBehaviourPunCallbacks
         SetActivePanel(selectionPanel.name);
     }
 
-    public void OnCreateRoomButtonClicked() //MYTODO test input field entry
+    public void OnCreateRoomButtonClicked()
     {
         string roomName = roomNameInputField.text;
         if (roomName.Equals(""))
         {
-            Debug.LogAssertion("Invalid room name");
-            return;
+            roomName = "Room : " + Random.Range(0, 10);
         }
-        int maxPlayers;
+        int maxPlayers = -1;
         maxPlayers = int.Parse(maxPlayersInputField.text);
-        if (roomName.Equals(""))
+        if (maxPlayers < 0)
         {
-            Debug.LogAssertion("Invalid max player");
+            maxPlayers = 8;
             return;
         }
-        roomName = (roomName.Equals(string.Empty)) ? "Room " + Random.Range(1000, 10000) : roomName;
-
+        
         RoomOptions options = new RoomOptions { MaxPlayers = (byte)maxPlayers};
 
         PhotonNetwork.CreateRoom(roomName, options, null);
@@ -345,11 +343,10 @@ public class LobbyScript : MonoBehaviourPunCallbacks
 
     private bool CheckPlayersReady()
     {
-        if (!PhotonNetwork.IsMasterClient)
+        if (!PhotonNetwork.IsMasterClient || PhotonNetwork.CurrentRoom.PlayerCount < 2)
         {
             return false;
         }
-
         foreach (Player player in PhotonNetwork.PlayerList)
         {
             object isPlayerReady;

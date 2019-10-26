@@ -101,6 +101,14 @@ public class PongBall : MonoBehaviour
 
     public void Respawn(int losePlayer)
     {
+        if (losePlayer == 0)
+        {
+            lastPosition = transform.position;
+            lastVelocity = startForce;
+            timeSinceLast = 0;
+            GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(lastPlayerID);
+            return;
+        }
 
         for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
         {
