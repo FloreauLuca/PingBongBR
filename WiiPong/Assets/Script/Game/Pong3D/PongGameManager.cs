@@ -1,4 +1,5 @@
-﻿using Photon.Pun;
+﻿using System.Collections;
+using Photon.Pun;
 using Photon.Pun.UtilityScripts;
 using Photon.Realtime;
 using System.Collections.Generic;
@@ -22,10 +23,11 @@ public class PongGameManager : MonoBehaviourPunCallbacks
     private bool gameStarted = false;
 
     [SerializeField] private GameObject wallPrefab;
+    [SerializeField] private GameObject wallEmptyPrefab;
 
-    private PongPlayer myPlayer;
-    private List<PongWall> myWall;
     private PongBall ball = null;
+
+    private bool endOfGame = false;
 
     public void Awake()
     {
@@ -89,24 +91,30 @@ public class PongGameManager : MonoBehaviourPunCallbacks
 
         for (int i = 0; i < totalPlayer; i++)
         {
-            myWall = new List<PongWall>();
-            Vector3 position = CalculateCirclePosition(radius, i, totalPlayer);
-            Quaternion rotation = CalculateCircleRotation(i, totalPlayer);
+            Vector3 position = CalculateCirclePosition(0, radius, i, totalPlayer);
+            Quaternion rotation = CalculateCircleRotation(0, i, totalPlayer);
             PongWall wall = Instantiate(wallPrefab, position, rotation).GetComponent<PongWall>();
-            wall.WallPosition = i;
             wall.WallPlayerId = PhotonNetwork.PlayerList[i].ActorNumber;
             wall.GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(wall.WallPlayerId) + Color.gray;
-            myWall.Add(wall);
+
+
+            if (totalPlayer % 2 != 0)
+            {
+                position = CalculateCirclePosition(180, radius + 3, i, totalPlayer);
+                rotation = CalculateCircleRotation(180, i, totalPlayer);
+                PongWall wallCorner = Instantiate(wallEmptyPrefab, position, rotation).GetComponent<PongWall>();
+                wallCorner.WallPlayerId = -1;
+            }
+
 
             if (PhotonNetwork.LocalPlayer == PhotonNetwork.PlayerList[i])
             {
-                Debug.LogError("Player Order : " + i);
-                position = CalculateCirclePosition(radius - 2, i, totalPlayer);
-                rotation = CalculateCircleRotation(i, totalPlayer);
-                myPlayer = PhotonNetwork.Instantiate("PongPlayer", position, rotation, 0).GetComponent<PongPlayer>();
+                position = CalculateCirclePosition(0, radius - 2, i, totalPlayer);
+                rotation = CalculateCircleRotation(0, i, totalPlayer);
+                PhotonNetwork.Instantiate("PongPlayer", position, rotation, 0).GetComponent<PongPlayer>();
 
-                position = CalculateCirclePosition(radius, i, totalPlayer);
-                rotation = CalculateCircleRotation(i, totalPlayer);
+                position = CalculateCirclePosition(0, radius, i, totalPlayer);
+                rotation = CalculateCircleRotation(0, i, totalPlayer);
                 camera.transform.rotation = rotation;
                 camera.transform.Rotate(Vector3.right, 45);
                 position += Vector3.up * 10;
@@ -117,20 +125,20 @@ public class PongGameManager : MonoBehaviourPunCallbacks
         gameStarted = true;
     }
 
-    public static Vector3 CalculateCirclePosition(float radius, int selectSegment, int maxSegment)
+    public static Vector3 CalculateCirclePosition(float startRotation, float radius, int selectSegment, int maxSegment)
     {
         int totalPlayer = maxSegment;
-        float angularStart = (360.0f / totalPlayer) * selectSegment;
+        float angularStart = (360.0f / totalPlayer) * selectSegment + startRotation;
         float x = radius * Mathf.Sin(angularStart * Mathf.Deg2Rad);
         float z = radius * Mathf.Cos(angularStart * Mathf.Deg2Rad);
         Vector3 position = new Vector3(x, 0.0f, z);
         return position;
     }
 
-    public static Quaternion CalculateCircleRotation(int selectSegment, int maxSegment)
+    public static Quaternion CalculateCircleRotation(float startRotation, int selectSegment, int maxSegment)
     {
         int totalPlayer = maxSegment;
-        float angularStart = (360.0f / totalPlayer) * selectSegment;
+        float angularStart = (360.0f / totalPlayer) * selectSegment + startRotation;
         Quaternion rotation = Quaternion.Euler(0.0f, angularStart + 180, 0.0f);
         return rotation;
     }
@@ -223,8 +231,9 @@ public class PongGameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     public void RespawnBall(int losePlayerID)
     {
+        CheckEndOfGame();
         uiManager.UpdateScore();
-        if (PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient && !endOfGame)
         {
             if (ball == null)
             {
@@ -236,4 +245,46 @@ public class PongGameManager : MonoBehaviourPunCallbacks
             }
         }
     }
+
+    private void CheckEndOfGame()
+    {
+        Player winner = null;
+
+        foreach (Player player in PhotonNetwork.PlayerList)
+        {
+            if (player.GetScore() >= 10)
+            {
+                winner = player;
+            }
+        }
+
+        if (winner != null)
+        {
+            endOfGame = true;
+            if (PhotonNetwork.IsMasterClient)
+            {
+                StopAllCoroutines();
+            }
+
+            StartCoroutine(EndOfGame(winner));
+        }
+    }
+
+
+    private IEnumerator EndOfGame(Player winner)
+    {
+        float timer = 5.0f;
+
+        while (timer > 0.0f)
+        {
+            infoText.text = string.Format("{0} won with {1} points.\n\n\nReturning to login screen in {2} seconds.", winner.NickName, winner.GetScore(), timer.ToString("n2"));
+            infoText.color = GlobalGameManager.GetColor(winner.ActorNumber);
+            yield return new WaitForEndOfFrame();
+
+            timer -= Time.deltaTime;
+        }
+
+        PhotonNetwork.LeaveRoom();
+    }
+
 }

@@ -13,13 +13,6 @@ public class PongWall : MonoBehaviour
         set => wallPlayerID = value;
     }
 
-    private int wallPosition = 0;
-    public int WallPosition
-    {
-        get => wallPosition;
-        set => wallPosition = value;
-    }
-
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Ball"))

@@ -62,11 +62,12 @@ public class PongBall : MonoBehaviour
         {
             newVelocity = newVelocity.normalized * maxSpeed;
         }
-        AddForce(transform.position, newVelocity, lastPlayerID, true);
         if (PhotonNetwork.LocalPlayer.ActorNumber == playerID)
         {
             photonView.RPC("AddForce", RpcTarget.Others, transform.position, newVelocity, lastPlayerID, false);
         }
+        AddForce(transform.position, newVelocity, lastPlayerID, true);
+        Debug.Log("AddForce");
     }
 
 
@@ -95,6 +96,10 @@ public class PongBall : MonoBehaviour
         Vector3 newVelocity = currentVelocity - 2f * Vector3.Dot(currentVelocity, normal) * normal;
         newVelocity = ((bounceCoef * 1000 * (newVelocity)) + (1 * newVelocity)) / (1 + 1000);
         newVelocity *= power;
+        if (PhotonNetwork.LocalPlayer.ActorNumber == lastPlayerID)
+        {
+            photonView.RPC("AddForce", RpcTarget.Others, transform.position, newVelocity, lastPlayerID, false);
+        }
         AddForce(transform.position, newVelocity, lastPlayerID, true);
     }
 
@@ -115,8 +120,8 @@ public class PongBall : MonoBehaviour
             if (PhotonNetwork.PlayerList[i].ActorNumber == losePlayer)
             {
                 float radius = 15f / Mathf.Tan(Mathf.PI / PhotonNetwork.CurrentRoom.PlayerCount);
-                Quaternion rotation = PongGameManager.CalculateCircleRotation(i, PhotonNetwork.CurrentRoom.PlayerCount);
-                Vector3 position = PongGameManager.CalculateCirclePosition(radius - 3, i, PhotonNetwork.CurrentRoom.PlayerCount);
+                Quaternion rotation = PongGameManager.CalculateCircleRotation(0, i, PhotonNetwork.CurrentRoom.PlayerCount);
+                Vector3 position = PongGameManager.CalculateCirclePosition(0, radius - 3, i, PhotonNetwork.CurrentRoom.PlayerCount);
                 position += Vector3.up;
                 photonView.RPC("AddForce", RpcTarget.All, position, rotation * startForce, losePlayer, true);
                 break;
