@@ -100,7 +100,7 @@ public class PongGameManager : MonoBehaviourPunCallbacks
             Quaternion rotation = CalculateCircleRotation(0, i, totalPlayer);
             PongWall wall = Instantiate(wallPrefab, position, rotation).GetComponent<PongWall>();
             wall.WallPlayerId = PhotonNetwork.PlayerList[i].ActorNumber;
-            wall.GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(wall.WallPlayerId) + Color.gray;
+            wall.GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(wall.WallPlayerId) - Color.gray;
 
 
             if (totalPlayer % 2 != 0)
@@ -232,21 +232,28 @@ public class PongGameManager : MonoBehaviourPunCallbacks
             }
         }
 
-        photonView.RPC("RespawnRequest", RpcTarget.All, (nickName + " score a goal"), losePlayerID);
+        photonView.RPC("RespawnRequest", RpcTarget.All, (nickName + " score a goal"), losePlayerID, playerID);
     }
 
     public void BallLostMessage()
     {
-        photonView.RPC("RespawnRequest", RpcTarget.All, ("Sorry for the inconvenience the ball is going to respawn."), -1);
+        photonView.RPC("RespawnRequest", RpcTarget.All, ("Sorry for the inconvenience the ball is going to respawn."), -1, -1);
     }
 
     public void PlayerDisconnectedMessage(int playerID, string nickName)
     {
-        photonView.RPC("RespawnRequest", RpcTarget.All, (nickName + " has been disconnected"), playerID);
+        if (PhotonNetwork.CurrentRoom.PlayerCount > 1)
+        {
+            photonView.RPC("RespawnRequest", RpcTarget.All, (nickName + " has been disconnected"), -1, -1);
+        }
+        else
+        {
+            StartCoroutine(EndOfGame(PhotonNetwork.LocalPlayer));
+        }
     }
 
     [PunRPC]
-    public void RespawnRequest(string message, int losePlayerID)
+    public void RespawnRequest(string message, int losePlayerID, int winPlayerID)
     {
         if (PhotonNetwork.IsMasterClient && !endOfGame)
         {
@@ -255,7 +262,7 @@ public class PongGameManager : MonoBehaviourPunCallbacks
 
         CheckEndOfGame();
         uiManager.UpdateScore();
-        StartCoroutine(RespawnMessage(message, losePlayerID));
+        StartCoroutine(RespawnMessage(message, losePlayerID, winPlayerID));
     }
 
     public void RespawnBall(int losePlayerID)
@@ -315,14 +322,14 @@ public class PongGameManager : MonoBehaviourPunCallbacks
     }
 
 
-    private IEnumerator RespawnMessage(string message, int losePlayerID)
+    private IEnumerator RespawnMessage(string message, int losePlayerID, int winPlayerID)
     {
         float timer = 1.0f;
 
         while (timer > 0.0f)
         {
             infoText.text = message + "\n\n\nBall will respawn in " + timer.ToString("n2");
-            infoText.color = GlobalGameManager.GetColor(losePlayerID);
+            infoText.color = GlobalGameManager.GetColor(winPlayerID);
             yield return new WaitForEndOfFrame();
 
             timer -= Time.deltaTime;

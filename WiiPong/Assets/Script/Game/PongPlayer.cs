@@ -39,7 +39,7 @@ public class PongPlayer : MonoBehaviour
     {
         if (photonView.IsMine)
         {
-            transform.position = transform.position + (startOrientation * speed * Input.GetAxis("Horizontal"));
+            transform.position = transform.position + (startOrientation * speed * Input.GetAxis("Horizontal") * Time.deltaTime);
             if (Vector3.Dot(startOrientation, transform.position - startPosition) > 10)
             {
                 transform.position = startPosition + startOrientation * 10;
@@ -48,7 +48,7 @@ public class PongPlayer : MonoBehaviour
             {
                 transform.position = startPosition + startOrientation * -10;
             }
-            transform.Rotate(Vector3.up, rotationSpeed * Input.GetAxis("Vertical"));
+            transform.Rotate(Vector3.up, rotationSpeed * Input.GetAxis("Vertical") * Time.deltaTime);
         }
     }
 
