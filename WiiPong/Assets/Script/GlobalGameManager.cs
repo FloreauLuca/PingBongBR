@@ -4,11 +4,6 @@ using UnityEngine;
 
 public class GlobalGameManager : MonoBehaviour
 {
-
-    public const float PLAYER_RESPAWN_TIME = 4.0f;
-
-    public const int PLAYER_MAX_LIVES = 3;
-
     public static Color GetColor(int colorChoice)
     {
         if (colorChoice > 12)

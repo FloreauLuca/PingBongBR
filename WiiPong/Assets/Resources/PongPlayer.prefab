@@ -145,7 +145,7 @@ MonoBehaviour:
     InterpolateRotateTowardsSpeed: 600
     InterpolateLerpSpeed: 5
   m_ScaleModel:
-    SynchronizeEnabled: 0
+    SynchronizeEnabled: 1
     InterpolateOption: 0
     InterpolateMoveTowardsSpeed: 1
     InterpolateLerpSpeed: 0
@@ -161,6 +161,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f6a84fb599729749a4690b1501a8aad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  power: 1.2
-  speed: 1
-  rotationSpeed: 10
+  power: 1.1
+  speed: 25
+  rotationSpeed: 100
+  biggerScale: {x: 5, y: 3, z: 1}
+  smallerScale: {x: 2, y: 3, z: 1}

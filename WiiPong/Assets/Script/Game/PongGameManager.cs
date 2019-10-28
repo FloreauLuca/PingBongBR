@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
+using Random = UnityEngine.Random;
 
 public class PongGameManager : MonoBehaviourPunCallbacks
 {
@@ -27,6 +28,7 @@ public class PongGameManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject wallEmptyPrefab;
 
     private PongBall ball = null;
+    private PongPlayer myPlayer = null;
 
     private bool endOfGame = false;
 
@@ -85,6 +87,14 @@ public class PongGameManager : MonoBehaviourPunCallbacks
         PlayerDisconnectedMessage(otherPlayer.ActorNumber, otherPlayer.NickName);
     }
 
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        if (PhotonNetwork.LocalPlayer.ActorNumber == newMasterClient.ActorNumber)
+        {
+            StartCoroutine(SpawnCase());
+        }
+    }
+
     private void StartGame()
     {
         int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
@@ -116,7 +126,7 @@ public class PongGameManager : MonoBehaviourPunCallbacks
             {
                 position = CalculateCirclePosition(0, radius - 2, i, totalPlayer);
                 rotation = CalculateCircleRotation(0, i, totalPlayer);
-                PhotonNetwork.Instantiate("PongPlayer", position, rotation, 0).GetComponent<PongPlayer>();
+                myPlayer = PhotonNetwork.Instantiate("PongPlayer", position, rotation, 0).GetComponent<PongPlayer>();
 
                 position = CalculateCirclePosition(0, radius, i, totalPlayer);
                 rotation = CalculateCircleRotation(0, i, totalPlayer);
@@ -127,6 +137,10 @@ public class PongGameManager : MonoBehaviourPunCallbacks
             }
         }
 
+        if (PhotonNetwork.IsMasterClient)
+        {
+            StartCoroutine(SpawnCase());
+        }
         gameStarted = true;
     }
 
@@ -337,5 +351,53 @@ public class PongGameManager : MonoBehaviourPunCallbacks
         infoText.text = "";
         RespawnBall(losePlayerID);
     }
+
+    public void OpenCase(PongCase.CaseType type)
+    {
+        switch (type)
+        {
+            case PongCase.CaseType.FREEZE:
+                photonView.RPC("Freeze", RpcTarget.Others);
+                break;
+            case PongCase.CaseType.BIGGER:
+                StartCoroutine(myPlayer.Bigger());
+                break;
+            case PongCase.CaseType.SMALLER:
+                StartCoroutine(myPlayer.Smaller());
+                break;
+        }
+    }
+
+    [PunRPC]
+    public void Freeze()
+    {
+        StartCoroutine(myPlayer.Freezed());
+    }
+
+
+    private IEnumerator SpawnCase()
+    {
+        int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
+        float radius = 15f / Mathf.Tan(Mathf.PI / totalPlayer);
+        while (!endOfGame)
+        {
+            yield return new WaitForSeconds(Random.Range(5, 25));
+            Vector3 position = new Vector3(Random.Range(-radius+3, radius-3), Random.Range(-radius+3, radius-3));
+            int random = Random.Range(0,3);
+            switch (random)
+            {
+                case 0:
+                    PhotonNetwork.InstantiateSceneObject("FreezeCase", position, Quaternion.Euler(Random.value * 360.0f, Random.value * 360.0f, Random.value * 360.0f));
+                    break;
+                case 1:
+                    PhotonNetwork.InstantiateSceneObject("SmallCase", position, Quaternion.Euler(Random.value * 360.0f, Random.value * 360.0f, Random.value * 360.0f));
+                    break;
+                case 2:
+                    PhotonNetwork.InstantiateSceneObject("BigCase", position, Quaternion.Euler(Random.value * 360.0f, Random.value * 360.0f, Random.value * 360.0f));
+                    break;
+            }
+        }
+    }
+
 
 }
