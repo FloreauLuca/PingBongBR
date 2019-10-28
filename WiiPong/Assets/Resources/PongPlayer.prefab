@@ -13,10 +13,10 @@ GameObject:
   - component: {fileID: 1499384211886551091}
   - component: {fileID: 1787096366753639644}
   - component: {fileID: 2028800360176543935}
-  - component: {fileID: 4720617816770252197}
   - component: {fileID: 2004694519978181547}
+  - component: {fileID: 194365123315341960}
   m_Layer: 0
-  m_Name: PingBongPlayer
+  m_Name: PongPlayer
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -116,21 +116,6 @@ MonoBehaviour:
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &4720617816770252197
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2172388177011873759}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53b2d04e66ce0f84897ef59073005a7c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  power: 1.2
-  speed: 1
-  rotationSpeed: 10
 --- !u!114 &2004694519978181547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146,10 +131,10 @@ MonoBehaviour:
   m_PositionModel:
     SynchronizeEnabled: 1
     TeleportEnabled: 1
-    TeleportIfDistanceGreaterThan: 4
+    TeleportIfDistanceGreaterThan: 8
     InterpolateOption: 2
     InterpolateMoveTowardsSpeed: 1
-    InterpolateLerpSpeed: 1
+    InterpolateLerpSpeed: 60
     ExtrapolateOption: 0
     ExtrapolateSpeed: 1
     ExtrapolateIncludingRoundTripTime: 1
@@ -164,3 +149,18 @@ MonoBehaviour:
     InterpolateOption: 0
     InterpolateMoveTowardsSpeed: 1
     InterpolateLerpSpeed: 0
+--- !u!114 &194365123315341960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2172388177011873759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f6a84fb599729749a4690b1501a8aad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  power: 1.2
+  speed: 1
+  rotationSpeed: 10

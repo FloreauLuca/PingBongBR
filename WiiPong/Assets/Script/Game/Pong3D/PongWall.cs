@@ -4,27 +4,20 @@ using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 
-public class PingBongWall : MonoBehaviour
+public class PongWall : MonoBehaviour
 {
-    private int wallPlayerID;
+    private int wallPlayerID = -1;
     public int WallPlayerId
     {
         get => wallPlayerID;
         set => wallPlayerID = value;
     }
 
-    private int wallPosition;
-    public int WallPosition
-    {
-        get => wallPosition;
-        set => wallPosition = value;
-    }
-
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Ball"))
         {
-            int ballPlayerID = other.GetComponent<PingBongBall>().LastPlayerId;
+            int ballPlayerID = other.GetComponent<PongBall>().LastPlayerId;
             if (wallPlayerID != -1)
             {
                 if (PhotonNetwork.LocalPlayer.ActorNumber != wallPlayerID)
@@ -34,20 +27,17 @@ public class PingBongWall : MonoBehaviour
 
                 if (wallPlayerID != ballPlayerID)
                 {
-                    if (wallPlayerID == PhotonNetwork.LocalPlayer.ActorNumber)
-                    {
-                        PingBongGameManager.Instance.AddScore(ballPlayerID, wallPlayerID);
-                    }
+                    PongGameManager.Instance.AddScore(ballPlayerID, wallPlayerID);
                 }
                 else
                 {
-                    other.GetComponent<PingBongBall>().Hit(transform.forward.normalized, 1, wallPlayerID);
+                    other.GetComponent<PongBall>().Hit(transform.forward.normalized, 1, wallPlayerID);
                 }
 
             }
             else
             {
-                other.GetComponent<PingBongBall>().Hit(transform.forward.normalized, 1, ballPlayerID);
+                other.GetComponent<PongBall>().Hit(transform.forward.normalized, 1, ballPlayerID);
             }
         }
     }

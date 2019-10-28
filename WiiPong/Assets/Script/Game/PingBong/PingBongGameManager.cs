@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Photon.Pun;
+﻿using Photon.Pun;
 using Photon.Pun.UtilityScripts;
 using Photon.Realtime;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -16,18 +15,20 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
     [SerializeField] private UIManager uiManager;
     [SerializeField] private GameObject camera;
 
-    [Header("Countdown time in seconds")]
-    public float Countdown = 5.0f;
+    [Header("Countdown time in seconds")] public float Countdown = 5.0f;
     private float startTime;
     private bool isTimerRunning;
 
     private bool gameStarted = false;
 
-    private Dictionary<int, int> score;
-    public Dictionary<int, int> Score => score;
-
     [SerializeField] private GameObject wallPrefab;
 
+    private PingBongPlayer myPlayer;
+    private List<PingBongWall> myWall;
+    private PingBongBall ball = null;
+
+    private List<Player> leftPlayers;
+    private List<Player> newPlayers;
 
     public void Awake()
     {
@@ -36,8 +37,9 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
 
     public void Start()
     {
-        score = new Dictionary<int, int>();
         photonView = GetComponent<PhotonView>();
+        leftPlayers = new List<Player>();
+        newPlayers = new List<Player>();
         infoText.text = "Waiting for other players...";
 
         Hashtable props = new Hashtable
@@ -60,7 +62,7 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
     }
 
 
-    public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
     {
         if (!PhotonNetwork.IsMasterClient)
         {
@@ -80,53 +82,165 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
         }
     }
 
-
-    private void StartGame()
+    public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        if (!gameStarted)
+        //newPlayers.Add(newPlayer);
+    }
+
+    private void NewPlayer(Player newPlayer)
+    {
+        if (gameStarted)
         {
-            foreach (Player player in PhotonNetwork.PlayerList)
+            if (PhotonNetwork.LocalPlayer != newPlayer)
             {
-                if (!score.ContainsKey(player.ActorNumber))
-                {
-                    score.Add(player.ActorNumber, 0);
-                }
-            }
-
-            int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
-            float radius = 10 / Mathf.Tan(Mathf.PI / totalPlayer);
-            Debug.Log(radius);
-            Vector3 position = CalculateCirclePosition(radius-2, PhotonNetwork.LocalPlayer.GetPlayerNumber());
-            Quaternion rotation = CalculateCircleRotation(PhotonNetwork.LocalPlayer.GetPlayerNumber());
-            Debug.Log(totalPlayer + " " + PhotonNetwork.LocalPlayer.GetPlayerNumber());
-
-            PhotonNetwork.Instantiate("PingBongPlayer", position, rotation, 0);
-
-            position = CalculateCirclePosition(radius, PhotonNetwork.LocalPlayer.GetPlayerNumber());
-            rotation = CalculateCircleRotation(PhotonNetwork.LocalPlayer.GetPlayerNumber());
-            camera.transform.rotation = rotation;
-            camera.transform.Rotate(Vector3.right, 45);
-            position += Vector3.up * 10;
-            camera.transform.position = position;
-
-            for (int i = 0; i < totalPlayer; i++)
-            {
-                position = CalculateCirclePosition(radius, i);
-                rotation = CalculateCircleRotation(i);
-                GameObject wall = Instantiate(wallPrefab, position, rotation);
-                wall.GetComponent<PingBongWall>().WallPlayerId = i + 1;
-            }
-
-            if (PhotonNetwork.IsMasterClient)
-            {
-                PhotonNetwork.Instantiate("PingBongBall", Vector3.up, Quaternion.identity, 0);
+                PingBongWall wall = Instantiate(wallPrefab).GetComponent<PingBongWall>();
+                wall.WallPosition = newPlayer.GetPlayerNumber();
+                wall.WallPlayerId = newPlayer.ActorNumber;
+                myWall.Add(wall);
+                ReplaceObject();
+                uiManager.NewPlayer(newPlayer);
             }
         }
     }
 
-    public static Vector3 CalculateCirclePosition(float radius, int selectSegment)
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        RespawnBall(0);
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        //leftPlayers.Add(otherPlayer);
+    }
+
+    private void LeftPlayer(Player otherPlayer)
+    {
+        if (gameStarted)
+        {
+            List<PingBongWall> removeWall = new List<PingBongWall>();
+            foreach (PingBongWall wall in myWall)
+            {
+                if (wall.WallPlayerId == otherPlayer.ActorNumber)
+                {
+                    removeWall.Add(wall);
+                }
+            }
+
+            foreach (PingBongWall wall in removeWall)
+            {
+                Destroy(wall.gameObject);
+                myWall.Remove(wall);
+            }
+
+            uiManager.LeftPlayer(otherPlayer);
+
+            ReplaceObject();
+        }
+    }
+
+    private void ReplaceObject()
     {
         int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
+        float radius = 12.5f / Mathf.Tan(Mathf.PI / totalPlayer);
+        if (totalPlayer <= 2)
+        {
+            radius = 12.5f;
+        }
+
+        int totalWall = totalPlayer > 2 ? totalPlayer : 4;
+        for (int i = 0; i < totalWall; i++)
+        {
+            if (myWall.Count <= i)
+            {
+                PingBongWall wall = Instantiate(wallPrefab).GetComponent<PingBongWall>();
+                myWall.Add(wall);
+            }
+            Vector3 position = CalculateCirclePosition(radius, i, totalWall);
+            Quaternion rotation = CalculateCircleRotation(i, totalWall);
+            myWall[i].WallPosition = i;
+            if (i < PhotonNetwork.CurrentRoom.PlayerCount)
+            {
+                myWall[i].WallPlayerId = PhotonNetwork.PlayerList[i].ActorNumber;
+            }
+            else
+            {
+                myWall[i].WallPlayerId = -1;
+            }
+            myWall[i].transform.position = position;
+            myWall[i].transform.rotation = rotation;
+
+            if (PhotonNetwork.LocalPlayer == PhotonNetwork.PlayerList[i])
+            {
+                position = CalculateCirclePosition(radius - 2, i, totalWall);
+                rotation = CalculateCircleRotation(i, totalWall);
+                myPlayer.ReplacePlayer(position, rotation);
+
+                position = CalculateCirclePosition(radius, i, totalWall);
+                rotation = CalculateCircleRotation(i, totalWall);
+                camera.transform.rotation = rotation;
+                camera.transform.Rotate(Vector3.right, 45);
+                position += Vector3.up * 10;
+                camera.transform.position = position;
+            }
+
+        }
+
+    }
+
+    private void StartGame()
+    {
+        int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
+        float radius = 12.5f / Mathf.Tan(Mathf.PI / totalPlayer);
+        if (totalPlayer <= 2)
+        {
+            radius = 12.5f;
+        }
+
+        int totalWall = totalPlayer > 2 ? totalPlayer : 4;
+        for(int i = 0; i < totalWall; i++)
+        {
+
+            myWall = new List<PingBongWall>();
+            Vector3 position = CalculateCirclePosition(radius, i, totalWall);
+            Quaternion rotation = CalculateCircleRotation(i, totalWall);
+            PingBongWall wall = Instantiate(wallPrefab, position, rotation).GetComponent<PingBongWall>();
+            wall.WallPosition = i;
+            if (i < PhotonNetwork.CurrentRoom.PlayerCount)
+            {
+                wall.WallPlayerId = PhotonNetwork.PlayerList[i].ActorNumber;
+            }
+            else
+            {
+                wall.WallPlayerId = -1;
+            }
+
+            myWall.Add(wall);
+            if (i < PhotonNetwork.CurrentRoom.PlayerCount)
+            {
+                if (PhotonNetwork.LocalPlayer == PhotonNetwork.PlayerList[i])
+                {
+                    Debug.LogError("Player Order : " + i);
+                    position = CalculateCirclePosition(radius - 2, i, totalWall);
+                    rotation = CalculateCircleRotation(i, totalWall);
+                    myPlayer = PhotonNetwork.Instantiate("PingBongPlayer", position, rotation, 0).GetComponent<PingBongPlayer>();
+
+                    position = CalculateCirclePosition(radius, i, totalWall);
+                    rotation = CalculateCircleRotation(i, totalWall);
+                    camera.transform.rotation = rotation;
+                    camera.transform.Rotate(Vector3.right, 45);
+                    position += Vector3.up * 10;
+                    camera.transform.position = position;
+                }
+            }
+
+        }
+
+        gameStarted = true;
+    }
+
+    public static Vector3 CalculateCirclePosition(float radius, int selectSegment, int maxSegment)
+    {
+        int totalPlayer = maxSegment;
         float angularStart = (360.0f / totalPlayer) * selectSegment;
         float x = radius * Mathf.Sin(angularStart * Mathf.Deg2Rad);
         float z = radius * Mathf.Cos(angularStart * Mathf.Deg2Rad);
@@ -134,10 +248,10 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
         return position;
     }
 
-    public static Quaternion CalculateCircleRotation(int selectSegment)
+    public static Quaternion CalculateCircleRotation(int selectSegment, int maxSegment)
     {
-        int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
-        float angularStart = (360.0f / totalPlayer) * selectSegment; 
+        int totalPlayer = maxSegment;
+        float angularStart = (360.0f / totalPlayer) * selectSegment;
         Quaternion rotation = Quaternion.Euler(0.0f, angularStart + 180, 0.0f);
         return rotation;
     }
@@ -150,7 +264,7 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
 
             if (player.CustomProperties.TryGetValue("PlayerLoadedLevel", out playerLoadedLevel))
             {
-                if ((bool)playerLoadedLevel)
+                if ((bool) playerLoadedLevel)
                 {
                     continue;
                 }
@@ -164,20 +278,23 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
 
     private void OnCountdownTimerIsExpired()
     {
-        StartGame();
+        if (!gameStarted)
+        {
+            StartGame();
+        }
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            ball = PhotonNetwork.Instantiate("PingBongBall", Vector3.up, Quaternion.identity, 0).GetComponent<PingBongBall>();
+        }
     }
 
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            PhotonNetwork.LeaveRoom();
-        }
-
         if (isTimerRunning)
         {
-            float timer = (float)PhotonNetwork.Time - startTime;
+            float timer = (float) PhotonNetwork.Time - startTime;
             float countdown = Countdown - timer;
 
             infoText.text = string.Format("Game starts in {0} seconds", countdown.ToString("n2"));
@@ -194,6 +311,10 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
             OnCountdownTimerIsExpired();
         }
 
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            PhotonNetwork.Disconnect();
+        }
     }
 
     public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
@@ -203,32 +324,48 @@ public class PingBongGameManager : MonoBehaviourPunCallbacks
         if (propertiesThatChanged.TryGetValue("StartTime", out startTimeFromProps))
         {
             isTimerRunning = true;
-            startTime = (float)startTimeFromProps;
+            startTime = (float) startTimeFromProps;
         }
     }
 
-    
-    public void AddScore(int playerID)
+    public void AddScore(int playerID, int losePlayerID)
     {
-        if (!PhotonNetwork.IsMasterClient || playerID == -1)
+        foreach (Player player in PhotonNetwork.PlayerList)
         {
-            return;
+            if (player.ActorNumber == playerID)
+            {
+                player.AddScore(1);
+            }
         }
-
-        photonView.RPC("UpdateScore", RpcTarget.All, playerID);
+        photonView.RPC("RespawnBall", RpcTarget.All, losePlayerID);
     }
 
     [PunRPC]
-    private void UpdateScore(int playerID)
+    public void RespawnBall(int losePlayerID)
     {
-        if (score.ContainsKey(playerID))
+        foreach (Player player in newPlayers)
         {
-            score[playerID]++;
-            uiManager.UpdateScore();
+            NewPlayer(player);
         }
-        else
+
+        foreach (Player player in leftPlayers)
         {
-            Debug.LogError("Score don't contain : " + playerID);
+            LeftPlayer(player);
+        }
+
+        newPlayers = new List<Player>();
+        leftPlayers = new List<Player>();
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            if (ball == null)
+            {
+                ball = PhotonNetwork.Instantiate("PingBongBall", Vector3.up, Quaternion.identity, 0).GetComponent<PingBongBall>();
+            }
+            else
+            {
+                ball.Respawn(losePlayerID);
+            }
         }
     }
 }

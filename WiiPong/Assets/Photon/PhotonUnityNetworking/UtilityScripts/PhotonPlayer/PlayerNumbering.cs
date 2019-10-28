@@ -140,7 +140,6 @@ namespace Photon.Pun.UtilityScripts
                 return;
             }
 
-
             HashSet<int> usedInts = new HashSet<int>();
             Player[] sorted = PhotonNetwork.PlayerList.OrderBy((p) => p.ActorNumber).ToArray();
 
@@ -160,7 +159,6 @@ namespace Photon.Pun.UtilityScripts
                 if (player.IsLocal)
                 {
 					Debug.Log ("PhotonNetwork.CurrentRoom.PlayerCount = " + PhotonNetwork.CurrentRoom.PlayerCount);
-
                     // select a number
                     for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
                     {

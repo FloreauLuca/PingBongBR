@@ -7,7 +7,7 @@ using Photon.Realtime;
 using TMPro;
 using UnityEngine;
 
-public class UIManager : MonoBehaviour
+public class PongUIManager : MonoBehaviour
 {
     public GameObject scoreTëxtPrefab;
 
@@ -23,7 +23,7 @@ public class UIManager : MonoBehaviour
             entry.transform.SetParent(gameObject.transform);
             entry.transform.localScale = Vector3.one;
             TextMeshProUGUI entryText = entry.GetComponent<TextMeshProUGUI>();
-            entryText.color = GlobalGameManager.GetColor(player.ActorNumber - 1);
+            entryText.color = GlobalGameManager.GetColor(player.ActorNumber);
             entryText.text = "Player " + player.NickName + " : 0";
             playerUIs.Add(player.ActorNumber, entryText);
 
@@ -44,7 +44,7 @@ public class UIManager : MonoBehaviour
         entry.transform.SetParent(gameObject.transform);
         entry.transform.localScale = Vector3.one;
         TextMeshProUGUI entryText = entry.GetComponent<TextMeshProUGUI>();
-        entryText.color = GlobalGameManager.GetColor(newPlayer.ActorNumber - 1);
+        entryText.color = GlobalGameManager.GetColor(newPlayer.ActorNumber);
         entryText.text = "Player " + newPlayer.ActorNumber + " : 0";
         playerUIs.Add(newPlayer.ActorNumber, entryText);
     }
