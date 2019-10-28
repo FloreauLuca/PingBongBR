@@ -46,7 +46,7 @@ public class PongBall : MonoBehaviour
         }
         if (Vector3.Distance(transform.position, Vector3.zero) > 1000)
         {
-            Respawn(0);
+            PongGameManager.Instance.BallLostMessage();
         }
     }
 
@@ -127,5 +127,12 @@ public class PongBall : MonoBehaviour
                 break;
             }
         }
+    }
+    public void Stop()
+    {
+        lastVelocity = Vector3.zero;
+        lastPosition = Vector3.up;
+        lastPlayerID = -1;
+        photonView.RPC("AddForce", RpcTarget.All, lastPosition, lastVelocity, lastPlayerID, false);
     }
 }

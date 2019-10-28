@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using Photon.Pun;
 using Photon.Pun.UtilityScripts;
 using Photon.Realtime;
@@ -79,6 +80,10 @@ public class PongGameManager : MonoBehaviourPunCallbacks
         }
     }
 
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        PlayerDisconnectedMessage(otherPlayer.ActorNumber, otherPlayer.NickName);
+    }
 
     private void StartGame()
     {
@@ -217,22 +222,44 @@ public class PongGameManager : MonoBehaviourPunCallbacks
 
     public void AddScore(int playerID, int losePlayerID)
     {
+        string nickName = "";
         foreach (Player player in PhotonNetwork.PlayerList)
         {
             if (player.ActorNumber == playerID)
             {
                 player.AddScore(1);
+                nickName = player.NickName;
             }
         }
 
-        photonView.RPC("RespawnBall", RpcTarget.All, losePlayerID);
+        photonView.RPC("RespawnRequest", RpcTarget.All, (nickName + " score a goal"), losePlayerID);
+    }
+
+    public void BallLostMessage()
+    {
+        photonView.RPC("RespawnRequest", RpcTarget.All, ("Sorry for the inconvenience the ball is going to respawn."), -1);
+    }
+
+    public void PlayerDisconnectedMessage(int playerID, string nickName)
+    {
+        photonView.RPC("RespawnRequest", RpcTarget.All, (nickName + " has been disconnected"), playerID);
     }
 
     [PunRPC]
-    public void RespawnBall(int losePlayerID)
+    public void RespawnRequest(string message, int losePlayerID)
     {
+        if (PhotonNetwork.IsMasterClient && !endOfGame)
+        {
+            ball.Stop();
+        }
+
         CheckEndOfGame();
         uiManager.UpdateScore();
+        StartCoroutine(RespawnMessage(message, losePlayerID));
+    }
+
+    public void RespawnBall(int losePlayerID)
+    {
         if (PhotonNetwork.IsMasterClient && !endOfGame)
         {
             if (ball == null)
@@ -285,6 +312,23 @@ public class PongGameManager : MonoBehaviourPunCallbacks
         }
 
         PhotonNetwork.LeaveRoom();
+    }
+
+
+    private IEnumerator RespawnMessage(string message, int losePlayerID)
+    {
+        float timer = 1.0f;
+
+        while (timer > 0.0f)
+        {
+            infoText.text = message + "\n\n\nBall will respawn in " + timer.ToString("n2");
+            infoText.color = GlobalGameManager.GetColor(losePlayerID);
+            yield return new WaitForEndOfFrame();
+
+            timer -= Time.deltaTime;
+        }
+        infoText.text = "";
+        RespawnBall(losePlayerID);
     }
 
 }
