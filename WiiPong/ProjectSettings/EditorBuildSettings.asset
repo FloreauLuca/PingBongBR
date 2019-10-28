@@ -9,18 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/LobbyScene.unity
     guid: 334ce47a2b12cdf4ca98e7fe199d34a4
   - enabled: 1
-    path: Assets/Scenes/GameScene.unity
-    guid: 37ac757eb5a5a0e4a946343815b051f0
-  - enabled: 1
-    path: Assets/Scenes/TennisScene.unity
-    guid: a1f76e4cf4202d04c8432a5d9729aa80
-  - enabled: 1
-    path: Assets/Scenes/PingBongScene.unity
-    guid: 138da94c91ddade4f8915c8063443c63
-  - enabled: 1
-    path: Assets/Scenes/PingBongBRScene.unity
-    guid: 4283042741dd14a4391fae5d8d1a9163
-  - enabled: 1
     path: Assets/Scenes/PongScene2.unity
     guid: 65d7e64e069ec3045b01a417ce2f853a
   - enabled: 1
