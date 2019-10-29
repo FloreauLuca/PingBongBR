@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7738264232652653148}
   - component: {fileID: 5862714680847983803}
   - component: {fileID: 5065957780233847541}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 2793369724348368196}
   - component: {fileID: 1415818234949492814}
   - component: {fileID: 8519217405581581105}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -168,7 +168,7 @@ GameObject:
   - component: {fileID: 8450702878869861168}
   - component: {fileID: 8450702878869861171}
   - component: {fileID: 8583505044192800577}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: FreezeCase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -184,7 +184,7 @@ Transform:
   m_GameObject: {fileID: 8450702878869861170}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.5, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 3}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_Children:
   - {fileID: 2793369724348368196}
   - {fileID: 7738264232652653148}
@@ -279,7 +279,8 @@ MonoBehaviour:
   prefixField: -1
   Synchronization: 0
   OwnershipTransfer: 0
-  ObservedComponents: []
+  ObservedComponents:
+  - {fileID: 0}
   viewIdField: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0

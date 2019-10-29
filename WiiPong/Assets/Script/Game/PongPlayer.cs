@@ -26,17 +26,22 @@ public class PongPlayer : MonoBehaviour
     private bool freezed = false;
     private bool big = false;
     private bool small = false;
-    
+
+
+    [SerializeField] private Renderer colorRenderer;
+
+    public void SetColor(Color color)
+    {
+        colorRenderer.material.color = color;
+    }
+
+
     // Start is called before the first frame update
     void Start()
     {
         photonView = GetComponent<PhotonView>();
         playerID = photonView.Owner.ActorNumber;
-        foreach (Renderer r in GetComponentsInChildren<Renderer>())
-        {
-            r.material.color = GlobalGameManager.GetColor(playerID);
-        }
-        
+        SetColor(GlobalGameManager.GetColor(playerID));
         startOrientation = transform.right;
         startPosition = transform.position;
         standardScale = transform.localScale;
@@ -71,7 +76,9 @@ public class PongPlayer : MonoBehaviour
     public IEnumerator Freezed()
     {
         freezed = true;
+        SetColor(GlobalGameManager.GetColor(playerID) + Color.gray);
         yield return new WaitForSeconds(5.0f);
+        SetColor(GlobalGameManager.GetColor(playerID));
         freezed = false;
     }
 

@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 2029682258934608937}
   - component: {fileID: 8521127934155042478}
   m_Layer: 0
-  m_Name: PongWall 1
+  m_Name: PongWallEmpty
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -161,3 +161,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 082ea26da25e5b547992a8add50a6465, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  colorRenderer: {fileID: 8932560079053248561}

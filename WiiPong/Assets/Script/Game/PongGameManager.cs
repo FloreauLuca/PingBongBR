@@ -28,6 +28,7 @@ public class PongGameManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject wallEmptyPrefab;
 
     private PongBall ball = null;
+    public PongBall Ball => ball;
     private PongPlayer myPlayer = null;
 
     private bool endOfGame = false;
@@ -110,7 +111,7 @@ public class PongGameManager : MonoBehaviourPunCallbacks
             Quaternion rotation = CalculateCircleRotation(0, i, totalPlayer);
             PongWall wall = Instantiate(wallPrefab, position, rotation).GetComponent<PongWall>();
             wall.WallPlayerId = PhotonNetwork.PlayerList[i].ActorNumber;
-            wall.GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(wall.WallPlayerId) - Color.gray;
+            wall.SetColor(GlobalGameManager.GetColor(wall.WallPlayerId) - Color.gray);
 
 
             if (totalPlayer % 2 != 0)
@@ -269,7 +270,7 @@ public class PongGameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     public void RespawnRequest(string message, int losePlayerID, int winPlayerID)
     {
-        if (PhotonNetwork.IsMasterClient && !endOfGame)
+        if (PhotonNetwork.IsMasterClient && !endOfGame && ball != null)
         {
             ball.Stop();
         }
@@ -379,21 +380,26 @@ public class PongGameManager : MonoBehaviourPunCallbacks
     {
         int totalPlayer = PhotonNetwork.CurrentRoom.PlayerCount;
         float radius = 15f / Mathf.Tan(Mathf.PI / totalPlayer);
+        if (totalPlayer <= 2)
+        {
+            radius = 12.5f;
+        }
+
         while (!endOfGame)
         {
             yield return new WaitForSeconds(Random.Range(5, 25));
-            Vector3 position = new Vector3(Random.Range(-radius+3, radius-3), Random.Range(-radius+3, radius-3));
+            Vector3 position = new Vector3(Random.Range(-radius+3, radius-3), 1, Random.Range(-radius + 3, radius - 3));
             int random = Random.Range(0,3);
             switch (random)
             {
                 case 0:
-                    PhotonNetwork.InstantiateSceneObject("FreezeCase", position, Quaternion.Euler(Random.value * 360.0f, Random.value * 360.0f, Random.value * 360.0f));
+                    PhotonNetwork.InstantiateSceneObject("FreezeCase", position, Quaternion.Euler(0, Random.value * 360.0f, 0));
                     break;
                 case 1:
-                    PhotonNetwork.InstantiateSceneObject("SmallCase", position, Quaternion.Euler(Random.value * 360.0f, Random.value * 360.0f, Random.value * 360.0f));
+                    PhotonNetwork.InstantiateSceneObject("SmallCase", position, Quaternion.Euler(0, Random.value * 360.0f, 0));
                     break;
                 case 2:
-                    PhotonNetwork.InstantiateSceneObject("BigCase", position, Quaternion.Euler(Random.value * 360.0f, Random.value * 360.0f, Random.value * 360.0f));
+                    PhotonNetwork.InstantiateSceneObject("BigCase", position, Quaternion.Euler(0, Random.value * 360.0f, 0));
                     break;
             }
         }

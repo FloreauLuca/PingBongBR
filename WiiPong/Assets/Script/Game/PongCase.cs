@@ -22,7 +22,11 @@ public class PongCase : MonoBehaviour
             if (PhotonNetwork.LocalPlayer.ActorNumber == other.GetComponent<PongBall>().LastPlayerId)
             {
                 PongGameManager.Instance.OpenCase(type);
-                Destroy(gameObject);
+            }
+
+            if (PhotonNetwork.IsMasterClient)
+            {
+                PhotonNetwork.Destroy(gameObject);
             }
         }
     }

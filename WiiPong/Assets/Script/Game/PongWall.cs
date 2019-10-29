@@ -13,6 +13,14 @@ public class PongWall : MonoBehaviour
         set => wallPlayerID = value;
     }
 
+    [SerializeField] private Renderer colorRenderer;
+
+    public void SetColor(Color color)
+    {
+        colorRenderer.material.color = color;
+    }
+
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Ball"))

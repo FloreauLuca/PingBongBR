@@ -44,7 +44,7 @@ public class PongBall : MonoBehaviour
         {
             Bounce(Vector3.up, bounceCoef);
         }
-        if (Vector3.Distance(transform.position, Vector3.zero) > 1000)
+        if (Vector3.Distance(transform.position, Vector3.zero) > 100)
         {
             PongGameManager.Instance.BallLostMessage();
         }
@@ -96,7 +96,7 @@ public class PongBall : MonoBehaviour
         Vector3 newVelocity = currentVelocity - 2f * Vector3.Dot(currentVelocity, normal) * normal;
         newVelocity = ((bounceCoef * 1000 * (newVelocity)) + (1 * newVelocity)) / (1 + 1000);
         newVelocity *= power;
-        if (PhotonNetwork.LocalPlayer.ActorNumber == lastPlayerID)
+        if (PhotonNetwork.IsMasterClient && PongGameManager.Instance.Ball != null)
         {
             photonView.RPC("AddForce", RpcTarget.Others, transform.position, newVelocity, lastPlayerID, false);
         }
@@ -106,12 +106,14 @@ public class PongBall : MonoBehaviour
 
     public void Respawn(int losePlayer)
     {
-        if (losePlayer == 0)
+        if (losePlayer <= 0)
         {
             lastPosition = transform.position;
             lastVelocity = startForce;
             timeSinceLast = 0;
             GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(lastPlayerID);
+            Quaternion rotation = PongGameManager.CalculateCircleRotation(0, 0, PhotonNetwork.CurrentRoom.PlayerCount);
+            photonView.RPC("AddForce", RpcTarget.All, lastPosition, rotation * startForce, losePlayer, true);
             return;
         }
 
