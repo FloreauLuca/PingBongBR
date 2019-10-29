@@ -15,6 +15,7 @@ public class PongGameManager : MonoBehaviourPunCallbacks
     private PhotonView photonView;
 
     [SerializeField] private TextMeshProUGUI infoText;
+    [SerializeField] private TextMeshProUGUI pingText;
     [SerializeField] private PongUIManager uiManager;
     [SerializeField] private GameObject camera;
 
@@ -222,6 +223,8 @@ public class PongGameManager : MonoBehaviourPunCallbacks
         {
             PhotonNetwork.Disconnect();
         }
+
+        pingText.text = PhotonNetwork.GetPing().ToString() + " ms";
     }
 
     public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
