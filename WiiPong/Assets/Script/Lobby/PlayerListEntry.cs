@@ -36,10 +36,9 @@ public class PlayerListEntry : MonoBehaviour
         }
         else
         {
-            Hashtable initialProps = new Hashtable() { { "IsPlayerReady", isPlayerReady }, {"PlayerLives",GlobalGameManager.PLAYER_MAX_LIVES } };
+            Hashtable initialProps = new Hashtable() { { "IsPlayerReady", isPlayerReady }};
             PhotonNetwork.LocalPlayer.SetCustomProperties(initialProps);
             PhotonNetwork.LocalPlayer.SetScore(0);
-
         }
     }
 

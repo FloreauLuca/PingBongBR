@@ -39,5 +39,6 @@ MonoBehaviour:
   - Rebase
   - RespawnBall
   - RespawnRequest
+  - Freeze
   DisableAutoOpenWizard: 1
   ShowSettings: 1
