@@ -227,10 +227,9 @@ public class LobbyScript : MonoBehaviourPunCallbacks
         }
         int maxPlayers = -1;
         maxPlayers = int.Parse(maxPlayersInputField.text);
-        if (maxPlayers < 0)
+        if (maxPlayers <= 0)
         {
             maxPlayers = 8;
-            return;
         }
         
         RoomOptions options = new RoomOptions { MaxPlayers = (byte)maxPlayers};
