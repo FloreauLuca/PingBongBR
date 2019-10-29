@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5321737815945128847}
   - component: {fileID: 4585410652933935173}
   - component: {fileID: 649513440389661890}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: PongBall
   m_TagString: Ball
   m_Icon: {fileID: 0}
