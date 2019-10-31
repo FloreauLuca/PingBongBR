@@ -67,7 +67,6 @@ public class PongBall : MonoBehaviour
             photonView.RPC("AddForce", RpcTarget.Others, transform.position, newVelocity, lastPlayerID, false);
         }
         AddForce(transform.position, newVelocity, lastPlayerID, true);
-        Debug.Log("AddForce");
     }
 
 
@@ -77,14 +76,14 @@ public class PongBall : MonoBehaviour
         lastPlayerID = playerID;
         GetComponent<Renderer>().material.color = GlobalGameManager.GetColor(lastPlayerID);
         lastVelocity = newForce;
-        lastPosition = new Vector3(currentPosition.x, 0.6f, currentPosition.z);
+        lastPosition = currentPosition;
         if (spawn)
         {
             timeSinceLast = 0;
         }
         else
         {
-            timeSinceLast = PhotonNetwork.GetPing()/1000f * 2;
+            timeSinceLast = PhotonNetwork.GetPing()/1000f / 2;
             Debug.Log(timeSinceLast);
         }
     }
@@ -96,12 +95,7 @@ public class PongBall : MonoBehaviour
         Vector3 newVelocity = currentVelocity - 2f * Vector3.Dot(currentVelocity, normal) * normal;
         newVelocity = ((bounceCoef * 1000 * (newVelocity)) + (1 * newVelocity)) / (1 + 1000);
         newVelocity *= power;
-        /*
-        if (PhotonNetwork.IsMasterClient && PongGameManager.Instance.Ball != null)
-        {
-            photonView.RPC("AddForce", RpcTarget.Others, transform.position, newVelocity, lastPlayerID, false);
-        }
-        */
+        transform.position = new Vector3(transform.position.x, 0.5f, transform.position.z );
         AddForce(transform.position, newVelocity, lastPlayerID, true);
     }
 
