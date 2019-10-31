@@ -96,10 +96,12 @@ public class PongBall : MonoBehaviour
         Vector3 newVelocity = currentVelocity - 2f * Vector3.Dot(currentVelocity, normal) * normal;
         newVelocity = ((bounceCoef * 1000 * (newVelocity)) + (1 * newVelocity)) / (1 + 1000);
         newVelocity *= power;
+        /*
         if (PhotonNetwork.IsMasterClient && PongGameManager.Instance.Ball != null)
         {
             photonView.RPC("AddForce", RpcTarget.Others, transform.position, newVelocity, lastPlayerID, false);
         }
+        */
         AddForce(transform.position, newVelocity, lastPlayerID, true);
     }
 
